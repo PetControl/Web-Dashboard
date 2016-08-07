@@ -5,6 +5,9 @@ import urllib2 as urllib
 import cookielib
 import io
 import zbarlight
+import datetime
+from ebaysdk.exception import ConnectionError
+from ebaysdk.finding import Connection
 
 app = Flask(__name__)
 hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
@@ -51,7 +54,30 @@ def getInfo(petID, key):
 
 @app.route('/')
 def main():
-    return render_template('index.html')
+    item1 = getItem(0)
+    item2 = getItem(1)
+    item3 = getItem(2)
+    return render_template('index.html', ebayTitleOne = item1.title, ebayTitleTwo = item2.title, ebayTitleThree = item3.title, ebayLocationOne = item1.location, ebayLocationTwo = item2.location, ebayLocationThree = item3.sellingStatus.currentPrice.value, ebayPriceOne = item1.sellingStatus.currentPrice.value, ebayPriceTwo = item2.sellingStatus.currentPrice.value, ebayPriceThree = item3.sellingStatus.currentPrice.value, ebayUrlOne = item1.viewItemURL, ebayUrlTwo = item2.viewItemURL, ebayUrlThree = item3.viewItemURL)
+
+@app.route('/fuckinghell')
+def getItem(num):
+    try:
+        api = Connection(domain='svcs.sandbox.ebay.com', appid='TristanW-PetContr-SBX-3577624e3-6f8339d7', config_file=None)
+        response = api.execute('findItemsAdvanced', {'keywords': 'Dog Food'})
+
+        assert(response.reply.ack == 'Success')
+        assert(type(response.reply.timestamp) == datetime.datetime)
+        assert(type(response.reply.searchResult.item) == list)
+
+        item = response.reply.searchResult.item[num]
+
+        assert(type(item.listingInfo.endTime) == datetime.datetime)
+        assert(type(response.dict()) == dict)
+
+    except ConnectionError as e:
+        print(e)
+        print(e.response.dict())
+    return item;
 
 @app.route("/text_in", methods=['GET', 'POST'])
 def direct_request():
