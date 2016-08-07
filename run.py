@@ -1,12 +1,15 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, json
 import twilio.twiml
+from twilio.rest import TwilioRestClient
 from PIL import Image
-import urllib2 as urllib
+import urllib2
 import cookielib
 import io
 import zbarlight
+import MySQLdb
 
 app = Flask(__name__)
+
 hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
@@ -14,8 +17,25 @@ hdr = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML,
        'Accept-Language': 'en-US,en;q=0.8',
        'Connection': 'keep-alive'}
 
+db = MySQLdb.connect(host="petfinderdb.c1y1gazlb9dv.us-east-1.rds.amazonaws.com",    # your host, usually localhost
+                     user="AdamMc331",         # your username
+                     passwd="PetFinder331",  # your password
+                     db="petfinderdb") 
+
 def notifyOwner(petID):
-    number = getInfo(petID, "ownerNumber")
+    print(petID)
+    #TODO: FIX
+    petInfo = json.loads(getInfo(petID))
+    number = petInfo.get('owner').get('phone')
+
+    client = TwilioRestClient()
+    client.messages.create(
+        to=number,
+        from_="+15869913157",
+        body="A user has scanned your pet!"
+    )
+
+    return True
     #Figure out how to send a text to a number here
     #Text owner whatever is in the "text" variable
 
@@ -34,10 +54,11 @@ def parseQRCode(imageURI):
     fd = urllib2.urlopen(page.url)
     image_file = io.BytesIO(fd.read())
     image = Image.open(image_file)
-    image.load()
 
     codes = zbarlight.scan_codes('qrcode', image)
     print('QR codes: %s' % codes)
+    if codes is None:
+        return None
     return codes[0]
 
 def get_redirected_url(url):
@@ -45,9 +66,35 @@ def get_redirected_url(url):
     request = opener.open(url)
     return request.url
 
-def getInfo(petID, key):
+def getInfo(petID):
     #TODO: Have this connect to the DB lmao
-    return ""
+    cur = db.cursor()
+    cur.execute("SELECT p.id AS petId, p.name, p.breed, p.notes, o.id AS ownerID, o.firstName, o.lastName, o.address, o.phone FROM pet p JOIN owner o ON o.id=p.ownerId WHERE p.id=\"" + petID + "\";")
+    rows = cur.fetchall()
+    for row in rows:
+        pet = {
+            'id': row[0],
+            'name': row[1],
+            'breed': row[2],
+            'notes': row[3],
+            'owner': {
+                "id": row[4],
+                "firstName": row[5],
+                "lastName": row[6],
+                "address": row[7],
+                "phone": row[8]
+            }
+        }
+    cur.close()
+        return json.dumps(pet)
+    return json.dumps({})
+
+def getOwnerInfo(petID):
+    ownerInfo = json.loads(getInfo(petID)).get('owner')
+    result = 'Here is some information about my owner! Call them to let them know where I am!\n'
+    result = result + ownerInfo.get('firstName') + ' ' + ownerInfo.get('lastName') + '\n'
+    result = result + ownerInfo.get('phone')
+    return result
 
 @app.route('/')
 def main():
@@ -65,15 +112,18 @@ def direct_request():
         petID = parseQRCode(request.form.get('MediaUrl0'));
     else:
         #assume the body contains the pet id
-        petID = request.body
+        petID = request.form.get('Body')
 
     if petExits(petID):
-        if notifyOwner(petID, "Your dog has been scanned."):
-            resp.sms("The owner was contacted! Thank you!")
+        petInfo = json.loads(getInfo(petID))
+        if notifyOwner(petID):
+            resp.sms('The owner of ' + petInfo.get('name') + ' has been notified!')
+            resp.sms(getOwnerInfo(petID))
+            print str(petID)
         else:
-            resp.sms("The owner could not be reached. Please try again :(")
+            resp.sms('The owner of ' + petInfo.get('name') + ' could not be reached. Please try again :(')
     else:
-        resp.sms("This QR code is either incorrect or this pet is not registered.")
+        resp.sms('This QR code is either incorrect or this pet is not registered.')
     
     return str(resp)
 
@@ -82,6 +132,34 @@ def handle_errors():
     resp = twilio.twiml.Response()
     resp.sms("bruh")
     return str(resp)
+
+@app.route("/getDoggoInfo", methods=['GET'])
+def getDoggoInfo():
+    doggoID = str(request.args.get('dogID'))
+    if doggoID is None:
+        return "blah"
+
+    data = getInfo(doggoID)
+
+    return data
+
+@app.route("/addOwner", methods=['POST'])
+def addOwner():
+    #expecting an owner first name, last name, phone, address
+    first = request.form.get('firstName')
+    last = request.form.get('lastName')
+    phone = request.form.get('phone')
+    address = request.form.get('address')
+
+    cur = db.cursor()
+    try:
+        cur.execute("INSERT INTO owner (firstName, lastName, address, phone) VALUES ('"+ first +"', '"+ last +"', '"+ address +"', '"+ phone +"');")
+        cur.commit()
+    except:
+        cur.rollback()
+
+    cur.close()
+
 
 if __name__ == "__main__":
     app.run(debug=True)
