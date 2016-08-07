@@ -1,6 +1,9 @@
-from flask import Flask, request, redirect
+from flask import Flask, render_template, request, redirect
 import twilio.twiml
-import urllib2
+from PIL import Image
+import urllib2 as urllib
+import io
+import zbarlight
 
 app = Flask(__name__)
 
@@ -32,15 +35,19 @@ def getInfo(petID, key):
     #TODO: Have this connect to the DB lmao
     return ""
 
+@app.route('/')
+def main():
+    return render_template('index.html')
+
 @app.route("/text_in", methods=['GET', 'POST'])
 def direct_request():
 
     resp = twilio.twiml.Response()
-
     # Get the pet id
     petID = None
-    if request.form.get('NumMedia') == 1:
+    if str(request.form.get('NumMedia')) == '1':
         #need to parse the qr code to get the dog id
+        print("yeeee")
         petID = parseQRCode(request.form.get('MediaUrl0'));
     else:
         #assume the body contains the pet id
