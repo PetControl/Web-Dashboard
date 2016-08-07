@@ -1,5 +1,6 @@
 from flask import Flask, request, redirect
 import twilio.twiml
+import urllib2
 
 app = Flask(__name__)
 
@@ -13,7 +14,7 @@ def petExits(petID):
     return True
 
 def parseQRCode(imageURI):
-    fd = urllib.urlopen(imageURI)
+    fd = urllib.urlopen(get_redirected_url(imageURI))
     image_file = io.BytesIO(fd.read())
     image = Image.open(image_file)
     image.load()
@@ -21,6 +22,11 @@ def parseQRCode(imageURI):
     codes = zbarlight.scan_codes('qrcode', image)
     print('QR codes: %s' % codes)
     return codes[0]
+
+def get_redirected_url(url):
+    opener = urllib2.build_opener(urllib2.HTTPRedirectHandler)
+    request = opener.open(url)
+    return request.url
 
 def getInfo(petID, key):
     #TODO: Have this connect to the DB lmao
@@ -51,7 +57,7 @@ def direct_request():
     return str(resp)
 
 @app.route("/text_in/error", methods=['GET', 'POST'])
-def handle_errors:
+def handle_errors():
     resp = twilio.twiml.Response()
     resp.sms("bruh")
     return str(resp)
