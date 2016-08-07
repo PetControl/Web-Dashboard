@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-html, body {
+ html, body {
   font-family: 'Roboto', 'Helvetica', sans-serif;
 }
 .dashboard-avatar {
@@ -50,8 +50,8 @@ html, body {
   display: flex;
   -webkit-box-align: center;
   -webkit-align-items: center;
-      -ms-flex-align: center;
-          align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
 }
 .dashboard-drawer-header {
   box-sizing: border-box;
@@ -62,12 +62,12 @@ html, body {
   -webkit-box-orient: vertical;
   -webkit-box-direction: normal;
   -webkit-flex-direction: column;
-      -ms-flex-direction: column;
-          flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
   -webkit-box-pack: end;
   -webkit-justify-content: flex-end;
-      -ms-flex-pack: end;
-          justify-content: flex-end;
+  -ms-flex-pack: end;
+  justify-content: flex-end;
   padding: 16px;
   height: 151px;
 }
@@ -80,20 +80,20 @@ html, body {
   -webkit-box-orient: horizontal;
   -webkit-box-direction: normal;
   -webkit-flex-direction: row;
-      -ms-flex-direction: row;
-          flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
   -webkit-box-align: center;
   -webkit-align-items: center;
-      -ms-flex-align: center;
-          align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
   width: 100%;
 }
 
 .dashboard-navigation {
   -webkit-box-flex: 1;
   -webkit-flex-grow: 1;
-      -ms-flex-positive: 1;
-          flex-grow: 1;
+  -ms-flex-positive: 1;
+  flex-grow: 1;
 }
 .dashboard-layout .dashboard-navigation .mdl-navigation__link {
   display: -webkit-box !important;
@@ -103,12 +103,12 @@ html, body {
   -webkit-box-orient: horizontal;
   -webkit-box-direction: normal;
   -webkit-flex-direction: row;
-      -ms-flex-direction: row;
-          flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
   -webkit-box-align: center;
   -webkit-align-items: center;
-      -ms-flex-align: center;
-          align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
   color: rgba(255, 255, 255, 0.56);
   font-weight: 500;
 }
@@ -129,8 +129,8 @@ html, body {
 .dashboard-charts {
   -webkit-box-align: center;
   -webkit-align-items: center;
-      -ms-flex-align: center;
-          align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
 }
 .dashboard-chart:nth-child(1) {
   color: #ACEC00;
@@ -153,18 +153,18 @@ html, body {
   -webkit-box-orient: vertical;
   -webkit-box-direction: normal;
   -webkit-flex-direction: column;
-      -ms-flex-direction: column;
-          flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
   -webkit-box-align: stretch;
   -webkit-align-items: stretch;
-      -ms-flex-align: stretch;
-          align-items: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
 }
 /* TODO: Find a proper solution to have the graphs
  * not float around outside their container in IE10/11.
  * Using a browserhacks.com solution for now.
  */
-_:-ms-input-placeholder, :root .dashboard-graphs {
+ _:-ms-input-placeholder, :root .dashboard-graphs {
   min-height: 664px;
 }
 _:-ms-input-placeholder, :root .dashboard-graph {
@@ -181,11 +181,11 @@ _:-ms-input-placeholder, :root .dashboard-graph {
 .dashboard-cards {
   -webkit-box-align: start;
   -webkit-align-items: flex-start;
-      -ms-flex-align: start;
-          align-items: flex-start;
+  -ms-flex-align: start;
+  align-items: flex-start;
   -webkit-align-content: flex-start;
-      -ms-flex-line-pack: start;
-          align-content: flex-start;
+  -ms-flex-line-pack: start;
+  align-content: flex-start;
 }
 .dashboard-cards .dashboard-separator {
   height: 32px;
@@ -237,6 +237,15 @@ _:-ms-input-placeholder, :root .dashboard-graph {
   box-sizing: border-box;
   -webkit-box-align: center;
   -webkit-align-items: center;
-      -ms-flex-align: center;
-          align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.mdl-button{
+  position:absolute;
+  align-self: flex-end;
+  margin: 16px;
+  z-index: 100000;
+  bottom: 0;
+  right: 0;
 }

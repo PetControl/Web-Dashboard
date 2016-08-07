@@ -31,7 +31,7 @@ def parseQRCode(imageURI):
     except urllib2.HTTPError, e:
         print e.fp.read()
 
-    fd = urllib.urlopen(page.url)
+    fd = urllib2.urlopen(page.url)
     image_file = io.BytesIO(fd.read())
     image = Image.open(image_file)
     image.load()
