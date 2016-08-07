@@ -91,7 +91,6 @@ def getInfo(petID):
                 "phone": row[8]
             }
         }
-    cur.close()
         return json.dumps(pet)
     return json.dumps({})
 
@@ -182,13 +181,42 @@ def addOwner():
 
     cur = db.cursor()
     try:
-        cur.execute("INSERT INTO owner (firstName, lastName, address, phone) VALUES ('"+ first +"', '"+ last +"', '"+ address +"', '"+ phone +"');")
-        cur.commit()
+        sql = "INSERT INTO owner (firstName, lastName, address, phone) VALUES (%s, %s, %s, %s);"
+        cur.execute(sql, (first, last, phone, address))
+        db.commit()
     except:
-        cur.rollback()
+        db.rollback()
+        print("addOwner: rollback")
+
+    #TODO: Get the id of the new owner and return it in a json obj
+    cur.execute('SELECT LAST_INSERT_ID()')
+    lastID = cur.fetchone()
 
     cur.close()
 
+    return str(lastID[0])
+
+@app.route("/addPet", methods=['POST'])
+def addPet():
+    name = request.form.get('name')
+    breed = request.form.get('breed')
+    notes = request.form.get('notes')
+    ownerID = request.form.get('ownerID')
+
+    cur = db.cursor()
+    try:
+        sql = "INSERT INTO pet (name, ownerId, breed, notes) VALUES (%s, %s, %s, %s);"
+        cur.execute(sql, (name, ownerID, breed, notes))
+        db.commit()
+    except:
+        db.rollback()
+        print("addPet: rollback")
+
+    #TODO: Get the id of the new owner and return it in a json obj
+    cur.execute('SELECT LAST_INSERT_ID()')
+    lastID = cur.fetchone()
+
+    return str(lastID[0])
 
 if __name__ == "__main__":
     app.run(debug=True)
