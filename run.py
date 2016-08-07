@@ -13,8 +13,14 @@ def petExits(petID):
     return True
 
 def parseQRCode(imageURI):
-    #TODO: Connect this to Tristan's code
-    return True
+    fd = urllib.urlopen(imageURI)
+    image_file = io.BytesIO(fd.read())
+    image = Image.open(image_file)
+    image.load()
+
+    codes = zbarlight.scan_codes('qrcode', image)
+    print('QR codes: %s' % codes)
+    return codes[0]
 
 def getInfo(petID, key):
     #TODO: Have this connect to the DB lmao
