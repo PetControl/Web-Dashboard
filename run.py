@@ -72,7 +72,7 @@ def get_redirected_url(url):
 def getInfo(petID):
     #TODO: Have this connect to the DB lmao
     cur = db.cursor()
-    cur.execute("SELECT p.id AS petId, p.name, p.breed, p.notes, o.id AS ownerID, o.firstName, o.lastName, o.address, o.phone FROM pet p JOIN owner o ON o.id=p.ownerId WHERE p.id=\"" + petID + "\";")
+    cur.execute("SELECT p.id AS petId, p.name, p.breed, p.notes, o.id AS ownerID, o.firstName, o.lastName, o.address, o.phone FROM pet p JOIN owner o ON o.id=p.ownerId WHERE p.id=\"" + str(petID) + "\";")
     rows = cur.fetchall()
     for row in rows:
         pet = {
@@ -177,7 +177,7 @@ def addOwner():
 
     cur = db.cursor()
     try:
-        sql = "INSERT INTO owner (firstName, lastName, address, phone) VALUES (%s, %s, %s, %s);"
+        sql = "INSERT INTO owner (firstName, lastName, phone, address) VALUES (%s, %s, %s, %s);"
         cur.execute(sql, (first, last, phone, address))
         db.commit()
     except:
@@ -215,27 +215,35 @@ def addPet():
     return str(lastID[0])
 
 @app.route("/getOwnerDoggos", methods=['GET'])
-def addGetDoggosForOwner():
+def getDoggosForOwner():
     ownerID = request.args.get('ownerID')
 
     cur = db.cursor()
-    sql = "SELECT p.id AS petId, p.name, p.breed, p.notes, o.id AS ownerID, o.firstName, o.lastName, o.address, o.phone FROM pet p JOIN owner o ON o.id = p.ownerId WHERE o.id=%s;"
-    cur.execute(sql, (ownerID))
+    sql = "SELECT p.id AS petId, p.name, p.breed, p.notes, o.id AS ownerID, o.firstName, o.lastName, o.address, o.phone FROM pet p JOIN owner o ON o.id = p.ownerId WHERE o.id = %s;"
+    cur.callproc('sp_getDoggosForOwner', (str(ownerID),))
 
     rows = cur.fetchall()
     arr = []
+
     for row in rows:
-        arr.append(getInfo(row[0]))
+        pet = {
+            'id': row[0],
+            'name': row[1],
+            'breed': row[2],
+            'notes': row[3],
+            'owner': {
+                "id": row[4],
+                "firstName": row[5],
+                "lastName": row[6],
+                "address": row[7],
+                "phone": row[8]
+            }
+        }
+        arr.append(pet)
 
     dic = { "pets": arr }
 
     return json.dumps(dic)
-
-@app.route("alertOwnersPossibleMatch", methods=['POST'])
-def alertOwners():
-    return ":Y"
-
-    
 
 if __name__ == "__main__":
     app.run(debug=True)
