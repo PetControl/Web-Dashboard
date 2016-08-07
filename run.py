@@ -6,13 +6,10 @@ import urllib2
 import cookielib
 import io
 import zbarlight
-<<<<<<< HEAD
 import datetime
 from ebaysdk.exception import ConnectionError
 from ebaysdk.finding import Connection
-=======
 import MySQLdb
->>>>>>> 7fae3ac2735da7518b08cf40d63a5d0cb71b0f6a
 
 app = Flask(__name__)
 
@@ -108,7 +105,6 @@ def main():
     item3 = getItem(2)
     return render_template('index.html', ebayTitleOne = item1.title, ebayTitleTwo = item2.title, ebayTitleThree = item3.title, ebayLocationOne = item1.location, ebayLocationTwo = item2.location, ebayLocationThree = item3.sellingStatus.currentPrice.value, ebayPriceOne = item1.sellingStatus.currentPrice.value, ebayPriceTwo = item2.sellingStatus.currentPrice.value, ebayPriceThree = item3.sellingStatus.currentPrice.value, ebayUrlOne = item1.viewItemURL, ebayUrlTwo = item2.viewItemURL, ebayUrlThree = item3.viewItemURL)
 
-@app.route('/fuckinghell')
 def getItem(num):
     try:
         api = Connection(domain='svcs.sandbox.ebay.com', appid='TristanW-PetContr-SBX-3577624e3-6f8339d7', config_file=None)
@@ -217,6 +213,29 @@ def addPet():
     lastID = cur.fetchone()
 
     return str(lastID[0])
+
+@app.route("/getOwnerDoggos", methods=['GET'])
+def addGetDoggosForOwner():
+    ownerID = request.args.get('ownerID')
+
+    cur = db.cursor()
+    sql = "SELECT p.id AS petId, p.name, p.breed, p.notes, o.id AS ownerID, o.firstName, o.lastName, o.address, o.phone FROM pet p JOIN owner o ON o.id = p.ownerId WHERE o.id=%s;"
+    cur.execute(sql, (ownerID))
+
+    rows = cur.fetchall()
+    arr = []
+    for row in rows:
+        arr.append(getInfo(row[0]))
+
+    dic = { "pets": arr }
+
+    return json.dumps(dic)
+
+@app.route("alertOwnersPossibleMatch", methods=['POST'])
+def alertOwners():
+    return ":Y"
+
+    
 
 if __name__ == "__main__":
     app.run(debug=True)
